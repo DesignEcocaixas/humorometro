@@ -1,0 +1,54 @@
+CREATE DATABASE auto_avaliacao
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_general_ci;
+
+USE auto_avaliacao;
+
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    tipo ENUM('admin', 'usuario') DEFAULT 'usuario',
+    lembrar_me BOOLEAN DEFAULT FALSE,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE funcionarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome_completo VARCHAR(150) NOT NULL,
+    data_nascimento DATE NOT NULL,
+    inicio_contrato DATE NOT NULL,
+    sexo ENUM('Masculino', 'Feminino', 'Outro') NOT NULL,
+    setor ENUM(
+        'Comercial',
+        'Financeiro',
+        'Produção',
+        'Logística',
+        'RH',
+        'Gerencia',
+        'Design',
+        'Direção'
+    ) NOT NULL,
+    foto VARCHAR(255),
+    ativo BOOLEAN DEFAULT TRUE,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE avaliacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    funcionario_id INT NOT NULL,
+    estrelas INT NOT NULL CHECK (estrelas BETWEEN 1 AND 6),
+    avaliado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_funcionario
+        FOREIGN KEY (funcionario_id)
+        REFERENCES funcionarios(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_funcionario_setor ON funcionarios(setor);
+CREATE INDEX idx_avaliacoes_funcionario ON avaliacoes(funcionario_id);
+
+ALTER TABLE avaliacoes
+ADD COLUMN sugestao TEXT NULL AFTER estrelas;
