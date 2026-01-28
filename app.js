@@ -93,9 +93,13 @@ app.post('/login', (req, res) => {
         [email],
         async (err, results) => {
 
-            console.log('Usuário encontrado:', results.length);
+            if (err) {
+                console.error('Erro no MySQL:', err);
+                return res.redirect('/login');
+            }
 
-            if (err || results.length === 0) {
+            if (!results || results.length === 0) {
+                console.log('Usuário não encontrado');
                 return res.redirect('/login');
             }
 
@@ -115,11 +119,13 @@ app.post('/login', (req, res) => {
                 tipo: usuario.tipo
             };
 
-            res.redirect('/admin');
+            // 🔥 garante que a sessão será salva antes do redirect
+            req.session.save(() => {
+                res.redirect('/admin');
+            });
         }
     );
 });
-
 
 // ===============================
 // ROTAS API — FUNCIONÁRIOS (CRUD) [PROTEGIDAS]
