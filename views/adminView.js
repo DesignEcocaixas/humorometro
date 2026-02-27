@@ -42,6 +42,67 @@ function adminView() {
         .loading-content {
             text-align: center;
         }
+
+        /* =====================================
+   ANIMAÇÃO PERSONALIZADA DOS MODAIS
+===================================== */
+
+/* Remove animação padrão do Bootstrap */
+.modal.fade .modal-dialog {
+    transition: none;
+}
+
+/* Estado inicial */
+.modal.animar .modal-dialog {
+    transform: translateY(40px) scale(0.95);
+    opacity: 0;
+}
+
+/* Estado ativo */
+.modal.animar.show .modal-dialog {
+    animation: modalEntrada 0.35s ease forwards;
+}
+
+@keyframes modalEntrada {
+    0% {
+        transform: translateY(40px) scale(0.95);
+        opacity: 0;
+    }
+    60% {
+        transform: translateY(-5px) scale(1.02);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Backdrop suave */
+.modal-backdrop.show {
+    animation: backdropFade 0.3s ease forwards;
+}
+
+@keyframes backdropFade {
+    from { opacity: 0; }
+    to { opacity: 0.5; }
+}
+
+/* Micro animação interna */
+.modal.animar .modal-content {
+    animation: conteudoFade 0.4s ease;
+}
+
+@keyframes conteudoFade {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
     </style>
 </head>
 <body>
@@ -107,7 +168,7 @@ function adminView() {
 </div>
 
 <!-- MODAL CADASTRO / EDIÇÃO -->
-<div class="modal fade" id="modalFuncionario" tabindex="-1">
+<div class="modal fade animar" id="modalFuncionario" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
 
@@ -181,7 +242,7 @@ function adminView() {
 </div>
 
 <!-- MODAL DASHBOARD -->
-<div class="modal fade" id="modalDashboard" tabindex="-1">
+<div class="modal fade animar" id="modalDashboard" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
 
@@ -299,19 +360,30 @@ function salvarFuncionario() {
 
     fetch(url, { method, body: formData })
         .then(() => {
-            modal.hide();
-            carregarFuncionarios();
-        });
+    modal.hide();
+    carregarFuncionarios();
+
+    mostrarSucesso(
+        'Dados salvos!',
+        'O funcionário foi salvo com sucesso.'
+    );
+});
 }
 
 // ===============================
 // EXCLUIR
 // ===============================
 function excluirFuncionario(id) {
-    if (!confirm('Deseja excluir este funcionário?')) return;
-
-    fetch('/api/funcionarios/' + id, { method: 'DELETE' })
-        .then(() => carregarFuncionarios());
+    confirmarAcao('Deseja excluir este funcionário?', () => {
+        fetch('/api/funcionarios/' + id, { method: 'DELETE' })
+            .then(() => {
+                carregarFuncionarios();
+                mostrarSucesso(
+                    'Funcionário excluído!',
+                    'O registro foi removido com sucesso.'
+                );
+            });
+    });
 }
 
 function formatarData(data) {
@@ -509,28 +581,60 @@ function abrirModalAvaliacoes() {
 }
 
 function excluirComentario(id) {
-    if (!confirm('Deseja realmente excluir este comentário?')) {
-        return;
-    }
-
-    fetch('/api/avaliacoes/comentario/' + id, {
-        method: 'DELETE'
-    })
-    .then(res => res.json())
-    .then(() => {
-        // Recarrega a lista após exclusão
-        abrirModalAvaliacoes();
+    confirmarAcao('Deseja realmente excluir este comentário?', () => {
+        fetch('/api/avaliacoes/comentario/' + id, {
+            method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(() => {
+            abrirModalAvaliacoes();
+            mostrarSucesso(
+                'Comentário excluído!',
+                'A sugestão foi removida com sucesso.'
+            );
+        });
     });
 }
 
+function mostrarSucesso(titulo, mensagem) {
+    const modalEl = document.getElementById('modalSucessoGlobal');
+    const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
 
+    document.getElementById('tituloSucesso').innerText = titulo;
+    document.getElementById('mensagemSucesso').innerText = mensagem;
+
+    modalInstance.show();
+
+    setTimeout(() => {
+        modalInstance.hide();
+    }, 2000);
+}
+
+function confirmarAcao(mensagem, callback) {
+    const modalEl = document.getElementById('modalConfirmacaoGlobal');
+    const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+    document.getElementById('mensagemConfirmacao').innerText = mensagem;
+
+    const btn = document.getElementById('btnConfirmarAcao');
+
+    const novoBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(novoBtn, btn);
+
+    novoBtn.addEventListener('click', () => {
+        modalInstance.hide();
+        callback();
+    });
+
+    modalInstance.show();
+}
 
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <!-- MODAL AVALIAÇÕES ANÔNIMAS -->
-<div class="modal fade" id="modalAvaliacoes" tabindex="-1">
+<div class="modal fade animar" id="modalAvaliacoes" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
 
@@ -553,6 +657,62 @@ function excluirComentario(id) {
     </div>
 </div>
 
+<!-- MODAL SUCESSO GLOBAL -->
+<div class="modal fade animar" id="modalSucessoGlobal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center py-4">
+
+            <div class="modal-body">
+                <div class="mb-3 text-success">
+                    <i class="fa-solid fa-circle-check fa-3x"></i>
+                </div>
+
+                <h5 class="fw-bold mb-2" id="tituloSucesso">
+                    Operação realizada com sucesso!
+                </h5>
+
+                <p class="text-muted mb-0" id="mensagemSucesso">
+                    A ação foi concluída corretamente.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONFIRMAÇÃO -->
+<div class="modal fade animar" id="modalConfirmacaoGlobal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Confirmar ação
+                </h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="mb-0" id="mensagemConfirmacao">
+                    Deseja realmente continuar?
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button class="btn btn-danger"
+                    id="btnConfirmarAcao">
+                    Confirmar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 </body>
 </html>

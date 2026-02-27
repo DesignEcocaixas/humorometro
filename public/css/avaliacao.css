@@ -1,0 +1,304 @@
+/* =====================================================
+   BASE
+===================================================== */
+body {
+    background-color: #f4f6f8;
+}
+
+/* =====================================================
+   NAVBAR
+===================================================== */
+.navbar-brand img {
+    height: 28px;
+}
+
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 0.95rem;
+    }
+
+    .navbar-brand img {
+        height: 22px;
+    }
+}
+
+/* =====================================================
+   CARDS FUNCIONÁRIOS
+===================================================== */
+.card-funcionario {
+    transition: transform .2s ease, box-shadow .2s ease;
+    cursor: pointer;
+}
+
+.card-funcionario:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .1);
+}
+
+.card-funcionario img {
+    height: 180px;
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    .card-funcionario img {
+        height: 150px;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-funcionario img {
+        height: 140px;
+    }
+
+    .card-funcionario .card-body {
+        padding: 0.75rem;
+    }
+
+    .card-funcionario h6 {
+        font-size: 0.95rem;
+    }
+}
+
+/* =====================================================
+   CARD DESABILITADO
+===================================================== */
+.card-funcionario.desabilitado {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.badge-avaliado {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    font-size: 0.7rem;
+}
+
+/* =====================================================
+   ESTRELAS
+===================================================== */
+.estrela {
+    font-size: 2.4rem;
+    color: #ccc;
+    cursor: pointer;
+    transition: color .2s ease, transform .15s ease;
+}
+
+.estrela:hover {
+    transform: scale(1.1);
+}
+
+.estrela.ativa {
+    color: #f1c40f;
+}
+
+@media (max-width: 576px) {
+    .estrela {
+        font-size: 2rem;
+    }
+}
+
+/* =====================================================
+   MODAL
+===================================================== */
+.modal-dialog {
+    max-width: 480px;
+}
+
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 1rem;
+    }
+
+    .modal-body p {
+        font-size: 0.9rem;
+    }
+}
+
+/* =====================================================
+   CAROUSEL (REGRAS)
+===================================================== */
+.carousel-inner {
+    padding: 0 60px;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    width: 56px;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, 0.6);
+    background-size: 60% 60%;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+}
+
+@media (max-width: 576px) {
+    .carousel-inner {
+        padding: 0 40px;
+    }
+
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 44px;
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        width: 34px;
+        height: 34px;
+    }
+}
+
+/* Oculta indicadores (visual mais clean) */
+.carousel-indicators {
+    display: none;
+}
+
+/* =====================================================
+   LOADING GLOBAL
+===================================================== */
+#loadingOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 87, 73, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: opacity .3s ease;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+/* ==============================
+   MODAL SUCESSO
+============================== */
+.sucesso-icon i {
+    font-size: 4rem;
+    color: #28a745;
+    animation: popIn .4s ease;
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(.5);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ==============================
+   EXPLOSÃO GLOBAL DE ESTRELAS
+============================== */
+
+#explosaoGlobal {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99999;
+}
+
+.estrela-explosao {
+    position: absolute;
+    font-size: 1.6rem;
+    color: #f1c40f;
+    animation: explodirGlobal 1.2s ease-out forwards;
+}
+
+@keyframes explodirGlobal {
+    0% {
+        transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) 
+                   scale(1.4) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* =====================================
+   ANIMAÇÃO PERSONALIZADA DOS MODAIS
+===================================== */
+
+/* Remove animação padrão do Bootstrap */
+.modal.fade .modal-dialog {
+    transition: none;
+}
+
+/* Estado inicial */
+.modal.animar .modal-dialog {
+    transform: translateY(40px) scale(0.95);
+    opacity: 0;
+}
+
+/* Estado ativo */
+.modal.animar.show .modal-dialog {
+    animation: modalEntrada 0.35s ease forwards;
+}
+
+@keyframes modalEntrada {
+    0% {
+        transform: translateY(40px) scale(0.95);
+        opacity: 0;
+    }
+
+    60% {
+        transform: translateY(-5px) scale(1.02);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Fade suave no backdrop */
+.modal-backdrop.show {
+    animation: backdropFade 0.3s ease forwards;
+}
+
+@keyframes backdropFade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 0.5;
+    }
+}
+
+/* Micro animação interna */
+.modal.animar .modal-content {
+    animation: conteudoFade 0.4s ease;
+}
+
+@keyframes conteudoFade {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
