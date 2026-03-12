@@ -93,7 +93,7 @@ function avaliacaoView() {
                     <label class="form-label fw-semibold">
                         Sugestões de melhoria <span class="text-muted">(opcional)</span>
                     </label>
-                    <textarea id="campoSugestao" class="form-control" rows="3" placeholder="Se quiser, deixe aqui uma sugestão ou comentário para melhoria do ambiente, processos ou apoio no dia a dia;"></textarea>
+                    <textarea id="campoSugestao" class="form-control" rows="3" placeholder="Se quiser, deixe aqui uma sugestão ou comentário para melhoria do ambiente, processos ou apoio no dia a dia"></textarea>
                 </div>
 
             </div>
