@@ -155,6 +155,10 @@ app.post('/api/funcionarios', upload.single('foto'), (req, res) => {
         setor
     } = req.body;
 
+    // Tratamento para evitar erro de string vazia em campos de data
+    const dataNasc = data_nascimento === '' ? null : data_nascimento;
+    const inicioContrato = inicio_contrato === '' ? null : inicio_contrato;
+
     const foto = req.file
         ? '/public/uploads/funcionarios/' + req.file.filename
         : null;
@@ -165,8 +169,8 @@ app.post('/api/funcionarios', upload.single('foto'), (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?)`,
         [
             nome_completo,
-            data_nascimento,
-            inicio_contrato,
+            dataNasc, // Usando a variável tratada
+            inicioContrato, // Usando a variável tratada
             sexo,
             setor,
             foto
@@ -182,6 +186,7 @@ app.post('/api/funcionarios', upload.single('foto'), (req, res) => {
 });
 
 // EDITAR FUNCIONÁRIO
+// EDITAR FUNCIONÁRIO
 app.put('/api/funcionarios/:id', upload.single('foto'), (req, res) => {
     const { id } = req.params;
     const {
@@ -191,6 +196,10 @@ app.put('/api/funcionarios/:id', upload.single('foto'), (req, res) => {
         sexo,
         setor
     } = req.body;
+
+    // Tratamento para evitar erro ER_TRUNCATED_WRONG_VALUE
+    const dataNasc = data_nascimento === '' ? null : data_nascimento;
+    const inicioContrato = inicio_contrato === '' ? null : inicio_contrato;
 
     let sql = `
         UPDATE funcionarios SET
@@ -203,8 +212,8 @@ app.put('/api/funcionarios/:id', upload.single('foto'), (req, res) => {
 
     const params = [
         nome_completo,
-        data_nascimento,
-        inicio_contrato,
+        dataNasc,       // Valor tratado
+        inicioContrato, // Valor tratado
         sexo,
         setor
     ];
