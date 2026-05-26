@@ -444,7 +444,7 @@ app.delete('/api/avaliacoes/comentario/:id', verificarLogin, (req, res) => {
 // ===============================
 // SERVER
 // ===============================
-const PORT = 3000;
+const PORT = 3001;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🔥 Sistema rodando em http://localhost:${PORT}`);
 });
