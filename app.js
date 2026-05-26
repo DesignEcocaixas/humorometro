@@ -82,6 +82,48 @@ app.get('/logout', (req, res) => {
 });
 
 // ===============================
+// ROTAS API — RELATÓRIOS (PROTEGIDO)
+// ===============================
+
+// BUSCAR ANOS E MESES DISPONÍVEIS PARA O FUNCIONÁRIO
+app.get('/api/avaliacoes/relatorio-opcoes/:funcionarioId', verificarLogin, (req, res) => {
+    const { funcionarioId } = req.params;
+    db.query(
+        `SELECT DISTINCT YEAR(avaliado_em) as ano, MONTH(avaliado_em) as mes
+         FROM avaliacoes
+         WHERE funcionario_id = ?
+         ORDER BY ano DESC, mes DESC`,
+        [funcionarioId],
+        (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ erro: 'Erro ao buscar opções de relatório' });
+            }
+            res.json(results);
+        }
+    );
+});
+
+// BUSCAR DADOS DO RELATÓRIO DO MÊS/ANO ESPECÍFICO
+app.get('/api/avaliacoes/relatorio-dados/:funcionarioId/:ano/:mes', verificarLogin, (req, res) => {
+    const { funcionarioId, ano, mes } = req.params;
+    db.query(
+        `SELECT DATE(avaliado_em) as dia, estrelas
+         FROM avaliacoes
+         WHERE funcionario_id = ? AND YEAR(avaliado_em) = ? AND MONTH(avaliado_em) = ?
+         ORDER BY avaliado_em ASC`,
+        [funcionarioId, ano, mes],
+        (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ erro: 'Erro ao buscar dados do relatório' });
+            }
+            res.json(results);
+        }
+    );
+});
+
+// ===============================
 // LOGIN (POST)
 // ===============================
 app.post('/login', (req, res) => {

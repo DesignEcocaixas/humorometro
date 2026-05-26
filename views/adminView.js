@@ -8,10 +8,8 @@ function adminView() {
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
     <style>
@@ -107,7 +105,6 @@ function adminView() {
 </head>
 <body>
 
-<!-- LOADING GLOBAL -->
 <div id="loadingOverlay">
     <div class="loading-content">
         <div class="spinner-border text-light" role="status"></div>
@@ -148,7 +145,6 @@ function adminView() {
         </button>
     </div>
 
-    <!-- TABELA -->
     <div class="table-responsive">
         <table class="table table-bordered table-hover align-middle">
             <thead class="table-dark text-center">
@@ -157,7 +153,7 @@ function adminView() {
                     <th>Nome</th>
                     <th>Setor</th>
                     <th>Início</th>
-                    <th width="140">Ações</th>
+                    <th width="150">Ações</th>
                 </tr>
             </thead>
             <tbody id="listaFuncionarios"></tbody>
@@ -167,7 +163,6 @@ function adminView() {
 
 </div>
 
-<!-- MODAL CADASTRO / EDIÇÃO -->
 <div class="modal fade animar" id="modalFuncionario" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -241,7 +236,6 @@ function adminView() {
     </div>
 </div>
 
-<!-- MODAL DASHBOARD -->
 <div class="modal fade animar" id="modalDashboard" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -261,12 +255,43 @@ function adminView() {
     </div>
 </div>
 
+<div class="modal fade animar" id="modalRelatorio" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tituloModalRelatorio">Gerar Relatório de Avaliação</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="relatorioFuncionarioId">
+                <input type="hidden" id="relatorioFuncionarioNome">
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Selecione o Ano</label>
+                        <select id="selectRelatorioAno" class="form-select" onchange="atualizarMesesRelatorio()"></select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Selecione o Mês</label>
+                        <select id="selectRelatorioMes" class="form-select"></select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-success" onclick="baixarRelatorioCsv()"><i class="fa fa-download"></i> Baixar CSV</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-<!-- Bootstrap -->
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
 let modal = new bootstrap.Modal(document.getElementById('modalFuncionario'));
+let modalRelatorio = new bootstrap.Modal(document.getElementById('modalRelatorio'));
+let opcoesRelatorioCache = [];
 
 document.addEventListener('DOMContentLoaded', carregarFuncionarios);
 
@@ -282,7 +307,7 @@ function carregarFuncionarios() {
 
             dados.forEach(f => {
                 tbody.innerHTML += \`
-                    <tr>
+                    <tr style="cursor: pointer;" onclick='editarFuncionario(\${JSON.stringify(f)})'>
                         <td class="text-center align-middle">
                             \${f.foto ? '<img src="' + f.foto + '" class="img-fluid rounded" style="max-height:50px;">' : ''}
                         </td>
@@ -292,18 +317,18 @@ function carregarFuncionarios() {
                         <td class="align-middle">\${formatarData(f.inicio_contrato)}</td>
 
                         <td class="text-center align-middle">
-                            <button class="btn btn-sm btn-info me-1"
-                                onclick="abrirDashboard(\${f.id}, '\${f.nome_completo}')">
+                            <button class="btn btn-sm btn-info me-1" title="Visualizar Dashboard"
+                                onclick="event.stopPropagation(); abrirDashboard(\${f.id}, '\${f.nome_completo}')">
                                 <i class="fa fa-chart-line"></i>
                             </button>
 
-                            <button class="btn btn-sm btn-warning me-1"
-                                onclick='editarFuncionario(\${JSON.stringify(f)})'>
-                                <i class="fa fa-edit"></i>
+                            <button class="btn btn-sm btn-success me-1" title="Gerar Relatório"
+                                onclick="event.stopPropagation(); abrirModalRelatorio(\${f.id}, '\${f.nome_completo}')">
+                                <i class="fa fa-file-excel"></i>
                             </button>
 
-                            <button class="btn btn-sm btn-danger"
-                                onclick="excluirFuncionario(\${f.id})">
+                            <button class="btn btn-sm btn-danger" title="Excluir"
+                                onclick="event.stopPropagation(); excluirFuncionario(\${f.id})">
                                 <i class="fa fa-trash"></i>
                             </button>
                         </td>
@@ -390,6 +415,9 @@ function formatarData(data) {
     return new Date(data).toLocaleDateString('pt-BR');
 }
 
+// ===============================
+// DASHBOARD
+// ===============================
 let modalDashboard = new bootstrap.Modal(
     document.getElementById('modalDashboard')
 );
@@ -444,6 +472,100 @@ function abrirDashboard(funcionarioId, nome) {
         });
 }
 
+// ===============================
+// LÓGICA DE RELATÓRIO
+// ===============================
+function abrirModalRelatorio(funcionarioId, nome) {
+    document.getElementById('relatorioFuncionarioId').value = funcionarioId;
+    document.getElementById('relatorioFuncionarioNome').value = nome;
+    document.getElementById('tituloModalRelatorio').innerText = \`Relatório: \${nome}\`;
+
+    fetch('/api/avaliacoes/relatorio-opcoes/' + funcionarioId)
+        .then(res => res.json())
+        .then(dados => {
+            opcoesRelatorioCache = dados;
+            const selectAno = document.getElementById('selectRelatorioAno');
+            const selectMes = document.getElementById('selectRelatorioMes');
+            
+            selectAno.innerHTML = '';
+            selectMes.innerHTML = '';
+
+            if (dados.length === 0) {
+                selectAno.innerHTML = '<option value="">Sem dados</option>';
+                selectMes.innerHTML = '<option value="">Sem dados</option>';
+                modalRelatorio.show();
+                return;
+            }
+
+            // Extrai os anos únicos
+            const anosUnicos = [...new Set(dados.map(d => d.ano))];
+            anosUnicos.forEach(ano => {
+                selectAno.innerHTML += \`<option value="\${ano}">\${ano}</option>\`;
+            });
+
+            atualizarMesesRelatorio();
+            modalRelatorio.show();
+        });
+}
+
+function atualizarMesesRelatorio() {
+    const anoSelecionado = document.getElementById('selectRelatorioAno').value;
+    const selectMes = document.getElementById('selectRelatorioMes');
+    selectMes.innerHTML = '';
+
+    const mesesDoAno = opcoesRelatorioCache.filter(d => d.ano == anoSelecionado);
+    const nomesMeses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+    mesesDoAno.forEach(d => {
+        selectMes.innerHTML += \`<option value="\${d.mes}">\${nomesMeses[d.mes]}</option>\`;
+    });
+}
+
+function baixarRelatorioCsv() {
+    const funcionarioId = document.getElementById('relatorioFuncionarioId').value;
+    const nome = document.getElementById('relatorioFuncionarioNome').value;
+    const ano = document.getElementById('selectRelatorioAno').value;
+    const mes = document.getElementById('selectRelatorioMes').value;
+
+    if(!ano || !mes) return alert('Sem dados suficientes para gerar o relatório.');
+
+    fetch(\`/api/avaliacoes/relatorio-dados/\${funcionarioId}/\${ano}/\${mes}\`)
+        .then(res => res.json())
+        .then(dados => {
+            if (dados.length === 0) {
+                alert('Nenhum dado encontrado para o período escolhido.');
+                return;
+            }
+
+            let somaEstrelas = 0;
+            let csvContent = \`Relatório de Avaliações - \${nome}\\n\`;
+            csvContent += \`Período: \${mes}/\${ano}\\n\\n\`;
+            csvContent += "Data;Estrelas\\n";
+
+            dados.forEach(d => {
+                const dataLocal = new Date(d.dia).toLocaleDateString('pt-BR');
+                csvContent += \`\${dataLocal};\${d.estrelas}\\n\`;
+                somaEstrelas += d.estrelas;
+            });
+
+            const media = (somaEstrelas / dados.length).toFixed(2);
+            csvContent += \`\\nMédia do Mês:;\${media}\\n\`;
+
+            const blob = new Blob(["\\ufeff", csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", \`relatorio_\${nome.replace(/\\s+/g, '_')}_\${mes}_\${ano}.csv\`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            modalRelatorio.hide();
+        });
+}
+
+
 function calcularTempoEmpresa(dataInicio) {
     const inicio = new Date(dataInicio);
     const hoje = new Date();
@@ -464,7 +586,6 @@ function calcularTempoEmpresa(dataInicio) {
     return anos === 1 ? '1 ano' : anos + ' anos';
 }
 
- // Esconde o loading quando a página terminar de carregar
     window.addEventListener('load', () => {
         const loading = document.getElementById('loadingOverlay');
         if (loading) {
@@ -473,7 +594,6 @@ function calcularTempoEmpresa(dataInicio) {
         }
     });
 
-    // Funções globais (opcional)
     function showLoading() {
         document.getElementById('loadingOverlay').style.display = 'flex';
     }
@@ -497,12 +617,10 @@ function abrirModalAvaliacoes() {
         .then(res => res.json())
         .then(avaliacoes => {
 
-            // 🔥 FILTRAR APENAS AVALIAÇÕES COM SUGESTÃO
             const comSugestao = avaliacoes.filter(a =>
                 a.sugestao && a.sugestao.trim() !== ''
             );
 
-            // ❌ SE NÃO EXISTIR NENHUMA SUGESTÃO
             if (comSugestao.length === 0) {
                 container.innerHTML = \`
                     <div class="text-center text-muted py-4">
@@ -515,7 +633,6 @@ function abrirModalAvaliacoes() {
 
             container.innerHTML = '';
 
-            // AGRUPAR POR DATA
             const agrupadas = {};
 
             comSugestao.forEach(a => {
@@ -526,7 +643,6 @@ function abrirModalAvaliacoes() {
                 agrupadas[data].push(a);
             });
 
-            // RENDERIZAR POR DATA
             Object.keys(agrupadas).forEach(data => {
                 container.innerHTML += \`
                     
@@ -633,7 +749,6 @@ function confirmarAcao(mensagem, callback) {
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- MODAL AVALIAÇÕES ANÔNIMAS -->
 <div class="modal fade animar" id="modalAvaliacoes" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -648,8 +763,7 @@ function confirmarAcao(mensagem, callback) {
             <div class="modal-body">
 
                 <div id="listaAvaliacoes" class="d-flex flex-column gap-3">
-                    <!-- Cards gerados via JS -->
-                </div>
+                    </div>
 
             </div>
 
@@ -657,7 +771,6 @@ function confirmarAcao(mensagem, callback) {
     </div>
 </div>
 
-<!-- MODAL SUCESSO GLOBAL -->
 <div class="modal fade animar" id="modalSucessoGlobal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content text-center py-4">
@@ -680,7 +793,6 @@ function confirmarAcao(mensagem, callback) {
     </div>
 </div>
 
-<!-- MODAL CONFIRMAÇÃO -->
 <div class="modal fade animar" id="modalConfirmacaoGlobal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
