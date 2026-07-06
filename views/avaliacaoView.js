@@ -24,7 +24,7 @@ function avaliacaoView() {
         /* BASE & TIPOGRAFIA */
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #e8eceb; /* Fundo levemente cinza para contraste */
+            background-color: #dedede;
             color: #333;
             overflow-x: hidden;
         }
@@ -378,7 +378,7 @@ function avaliacaoView() {
 
 <div class="container py-4">
 
-    <div class="row align-items-center mb-4">
+    <div class="row align-items-center mb-2">
         <div class="col-md-8 text-center text-md-start mb-3 mb-md-0">
             <h2 class="fw-bold" style="color: #0D5749;">Como você está se sentindo hoje?</h2>
             <p class="text-muted fs-5 mb-0">
