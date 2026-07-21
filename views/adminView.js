@@ -36,7 +36,6 @@ function adminView() {
 
         .navbar {
             background-color: var(--ecoflow-dark) !important;
-            padding: 1rem 1.5rem;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
